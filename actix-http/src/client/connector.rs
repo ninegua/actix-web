@@ -251,7 +251,10 @@ where
                     srv.call(TcpConnect::new(msg.uri).set_addr(msg.addr))
                 })
                 .map_err(ConnectError::from)
-                .map(|stream| (stream.into_parts().0, Protocol::Http1)),
+                .map(|stream| {
+                    let sock = stream.into_parts().0;
+                    sock.set_keepalive(Some(Duration::from_secs(15)));
+                    (sock, Protocol::Http1)} ),
             )
             .map_err(|e| match e {
                 TimeoutError::Service(e) => e,
